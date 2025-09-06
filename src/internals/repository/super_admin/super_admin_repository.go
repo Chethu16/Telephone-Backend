@@ -1,4 +1,4 @@
-package superadmin
+package superadmin_repo
 
 import (
 	"context"

@@ -15,6 +15,11 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
+s3_bucket = "testing-telephone"
+s3_prefix = "Chethu"
+region = "ap-south-1"
+
+image_repositories = []
 
 
 [default.package.parameters]

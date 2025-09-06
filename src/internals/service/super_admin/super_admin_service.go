@@ -1,4 +1,4 @@
-package service
+package superadmin_service
 
 import (
 	"context"
@@ -18,40 +18,61 @@ type SuperAdminService struct {
 }
 
 func NewSuperAdminService(r *superadmin.SuperAdminRepository, v *validator.Validate) *SuperAdminService {
+	// Safety: if caller forgot to pass validator, initialize it
+	if v == nil {
+		v = validator.New()
+	}
 	return &SuperAdminService{
 		Repo:     r,
 		Validate: v,
 	}
 }
+
 func (sa *SuperAdminService) CreateSuperAdmin(ctx context.Context, req super_admin.SuperAminCreateRequest) (*super_admin.SuperAdminCreateResponse, error) {
-	if err := sa.Validate.Struct(req); err != nil {
-		return nil,errors.New("please fill the all the details")
+	// Validate request
+	if sa.Validate == nil {
+		return nil, errors.New("validator not initialized")
 	}
+	if err := sa.Validate.Struct(req); err != nil {
+		return nil, err // return actual validation errors
+	}
+
+	// Normalize email
 	superadminEmail := strings.ToLower(strings.TrimSpace(req.SuperAdminEmail))
+
+	// Check if email exists
 	exists, err := sa.Repo.CheckSuperAdminEmailExists(ctx, superadminEmail)
 	if err != nil {
-		return nil, errors.New("")
+		return nil, errors.New("failed to check if email exists")
 	}
 	if exists {
 		return nil, errors.New("email id already exists")
 	}
 
+	// Hash password
 	hashPassword, err := utils.HashPassword(req.SuperAdminPassword)
 	if err != nil {
-		return nil, errors.New("")
+		return nil, errors.New("failed to hash password")
 	}
+
+	// Generate UUID
 	superadminId := utils.GenerateUUID()
+
+	// Prepare object for DB
 	superAdmin := super_admin.SuperAminCreateRequest{
 		SuperAdminId:       superadminId,
 		SuperAdminName:     req.SuperAdminName,
-		SuperAdminEmail:    req.SuperAdminEmail,
+		SuperAdminEmail:    superadminEmail,
 		SuperAdminPassword: hashPassword,
 	}
+
+	// Save to repository
 	if err := sa.Repo.CreateSuperAdmin(ctx, superAdmin); err != nil {
-		return nil, errors.New("")
+		return nil, errors.New("failed to create super admin")
 	}
+
+	// Return response
 	return &super_admin.SuperAdminCreateResponse{
 		SuperAdminID: superadminId,
-	},nil
-
+	}, nil
 }

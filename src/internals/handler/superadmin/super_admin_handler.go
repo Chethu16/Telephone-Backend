@@ -1,4 +1,4 @@
-package superadmin
+package superadmin_handler
 
 import (
 	"log"
@@ -6,16 +6,16 @@ import (
 
 	"github.com/Chethu16/Chethu/src/internals/domain/super_admin"
 	service "github.com/Chethu16/Chethu/src/internals/service/super_admin"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type SuperAdminHandler struct {
 	SuperAdminService *service.SuperAdminService
 }
 
-func NewSuperAdminHandler(superadminService *service.SuperAdminService) *SuperAdminHandler {
+func NewSuperAdminHandler(SuperadminService *service.SuperAdminService) *SuperAdminHandler {
 	return &SuperAdminHandler{
-		SuperAdminService: superadminService,
+		SuperAdminService: SuperadminService,
 	}
 }
 func (h *SuperAdminHandler) CreateSuperAdmin(c echo.Context) error {
@@ -35,7 +35,7 @@ func (h *SuperAdminHandler) CreateSuperAdmin(c echo.Context) error {
 			Error: "we encounterd an a issue while creating the super admin. please try again later.",
 		})
 	}
-	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+	return c.JSON(http.StatusCreated,super_admin.SuccesResponse{
 		Status: "succes",
 		Message: "super admin account created succesfully",
 		Data: res,
