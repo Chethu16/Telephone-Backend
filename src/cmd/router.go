@@ -13,6 +13,8 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 	SuperAdminRepo := superadmin_repo.NewSuperAdminRepository(db)
 	SuperAdminService := superadmin_service.NewSuperAdminService(SuperAdminRepo, validate)
 	SuperAdminHandler := superadmin_handler.NewSuperAdminHandler(SuperAdminService)
-	e.POST("/superadmin/create", SuperAdminHandler.CreateSuperAdmin)
+	SuperAdminRoute := e.Group("/superadmin")
 
+	SuperAdminRoute.POST("/create",SuperAdminHandler.CreateSuperAdmin)
+	SuperAdminRoute.POST("/login",SuperAdminHandler.SuperAdminLogin)
 }

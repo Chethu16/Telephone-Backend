@@ -16,7 +16,7 @@ type SuperAminCreateRequest struct{
 }
 type SuperAdminLoginRequest struct{
 	SuperAdminEmail string `json:"super_admin_email" bson:"super_admin_email" validate:"required,email"`
-	SuperAdminPassword string `json:"super_admin_password" bson:"super_admin_password" validate:"required,min=8,strongpasssword"`
+	SuperAdminPassword string `json:"super_admin_password" bson:"super_admin_password" validate:"required"`
 }
 type SuperAdminCreateResponse struct{
 	SuperAdminID string `json:"super_admin_id"`

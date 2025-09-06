@@ -3,6 +3,7 @@ package superadmin_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Chethu16/Chethu/src/internals/domain/super_admin"
@@ -74,5 +75,47 @@ func (sa *SuperAdminService) CreateSuperAdmin(ctx context.Context, req super_adm
 	// Return response
 	return &super_admin.SuperAdminCreateResponse{
 		SuperAdminID: superadminId,
+	}, nil
+}
+func (sa *SuperAdminService) SuperAdminLogin(ctx context.Context, req super_admin.SuperAdminLoginRequest) (*super_admin.SuperAdminLoginResponse, error) {
+	if sa.Validate == nil {
+		return nil, errors.New("validator not initialized")
+	}
+
+	// Validate input struct
+	if err := sa.Validate.Struct(req); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	superadminemail := strings.ToLower(strings.TrimSpace(req.SuperAdminEmail))
+
+	// Check if email exists
+	exists, err := sa.Repo.CheckSuperAdminEmailExists(ctx, superadminemail)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check email existence: %w", err)
+	}
+	if !exists {
+		return nil, errors.New("invalid email or password") // ✅ hide whether it's email or password
+	}
+
+	// Fetch details for login
+	superadminId, superadminName, hashedPassword, err := sa.Repo.CheckSuperAdminEmailForLogin(ctx, superadminemail)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch login details: %w", err)
+	}
+
+	// Compare password
+	if err := utils.CheckPasswordHash(req.SuperAdminPassword, hashedPassword); err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	// Generate JWT token
+	token, err := utils.GenerateSuperAdminToken(superadminemail, superadminName, superadminId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &super_admin.SuperAdminLoginResponse{
+		Token: token,
 	}, nil
 }
