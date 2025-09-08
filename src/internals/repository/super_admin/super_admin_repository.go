@@ -22,7 +22,7 @@ func (repo *SuperAdminRepository) CheckSuperAdminExists(ctx context.Context, sup
 	filter := bson.M{"super_admin_id": superadminid}
 	count, err := repo.SuperAdminCollection.CountDocuments(ctx, filter)
 	if err != nil {
-		return false, errors.New("unable to find email")
+		return false, errors.New("unable to find superadmin")
 	}
 	return count > 0, nil
 }
@@ -42,7 +42,7 @@ func (repo *SuperAdminRepository) CreateSuperAdmin(ctx context.Context, req supe
 		"super_admin_password": req.SuperAdminPassword,
 	})
 	if err != nil {
-		return errors.New("failed to connect spuper admin")
+		return errors.New("failed to connect super admin")
 	}
 	return nil
 }

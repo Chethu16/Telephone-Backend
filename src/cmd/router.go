@@ -17,4 +17,11 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 
 	SuperAdminRoute.POST("/create",SuperAdminHandler.CreateSuperAdmin)
 	SuperAdminRoute.POST("/login",SuperAdminHandler.SuperAdminLogin)
+	
+	SuperAdminCollegeRepo := superadmin_repo.NewSuperAdminCollegeRepository(db)
+	SuperAdminCollegeService := superadmin_service.NewSuperAdminCollegeService(SuperAdminCollegeRepo,validate)
+	SuperAdminCollegeHandler := superadmin_handler.NewSuperAdminCollegeHandler(SuperAdminCollegeService)
+	SuperAdminCollegeRoute := e.Group("/superadmin/college")
+
+	SuperAdminCollegeRoute.POST("/create/:super_admin_id",SuperAdminCollegeHandler.CreateCollege)
 }
