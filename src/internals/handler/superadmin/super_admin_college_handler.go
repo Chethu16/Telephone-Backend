@@ -47,3 +47,27 @@ func(h *SuperAdminCollegeHandler)CreateCollege(c echo.Context)error{
 		Data: res,
 	})
 }
+func(h *SuperAdminCollegeHandler)CollegeLogin(c echo.Context)error{
+	var req super_admin.CollegeLoginRequest
+	if err := c.Bind(&req); err!=nil{
+		log.Println("Collegelogin bind error:",err)
+		return c.JSON(http.StatusBadRequest,super_admin.ErrorResponse{
+			Status: "failed",
+			Error: "Invalid login request please check your credential formate.",
+		})
+	}
+	res,err := h.service.CollegeLogin(c.Request().Context(),req)
+	if err != nil{
+		log.Println("college login error:",err)
+		return c.JSON(http.StatusUnauthorized,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "login failed: "+err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+		Status: "succes",
+		Message: "Login Succesful",
+		Data: res,
+	})
+
+}

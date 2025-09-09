@@ -3,6 +3,7 @@ package superadmin_service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"strings"
 	"time"
@@ -68,5 +69,45 @@ func (sa *SuperAdminColllegeService) CreateCollege(ctx context.Context, req supe
 		CollegeName:  req.CollegeName,
 		Balance:      "0",
 	}, nil
+
+}
+func(sa *SuperAdminColllegeService)CollegeLogin(ctx context.Context,req super_admin.CollegeLoginRequest)(*super_admin.CollegeTokenResponse,error){
+	if sa.Validate == nil{
+		return nil,errors.New("validator not initialized")
+	}
+	if err := sa.Validate.Struct(req);err !=nil{
+		return nil,fmt.Errorf("validation failed: %w",err)
+	}
+
+	collegeEmail := strings.ToLower(strings.TrimSpace(req.CollegeEmail))
+
+	exists,err := sa.Repo.CheckCollegeEmailExists(ctx,collegeEmail)
+	if err !=nil{
+		return nil,errors.New("failed to check email existence")
+	}
+	if !exists{
+		return nil,errors.New("invalid email or password")
+	}
+	collegeID,name,hashPassword,superadminID,err := sa.Repo.GetCollegeForLogin(ctx,req.CollegeEmail)
+	if err != nil{
+		return nil,errors.New("college account not found")
+
+	}
+	if err := utils.CheckPasswordHash(req.CollegePassword,hashPassword);err != nil{
+		return nil,errors.New("incorrect email or password")
+	}
+	balance,err := sa.Repo.GetCollegeBalance(ctx,collegeID)
+	if err !=nil{
+		return nil,errors.New("unable to retrive account balance at the moment")
+	}
+	token,err := utils.GenerateCollegeToken(req.CollegeEmail,name,collegeID,superadminID)
+	if err !=nil{
+		return nil,errors.New("failed to login, please try again")
+	}
+	return &super_admin.CollegeTokenResponse{
+		Token: token,
+		Balance: balance,
+	},nil
+
 
 }

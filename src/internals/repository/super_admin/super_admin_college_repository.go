@@ -36,3 +36,29 @@ func(repo *SuperAdminCollegeRepository)CreateCollege(ctx context.Context,college
 	}
 	return nil
 }
+func(repo *SuperAdminCollegeRepository)GetCollegeForLogin(ctx context.Context,email string)(collegeID,collegeName,hashedPassword,superAdminID  string,err error){
+	filter := bson.M{"college_email":email}
+	var college super_admin.SuperAdminCollege
+	err = repo.CollegeCollection.FindOne(ctx,filter).Decode(&college)
+	if err !=nil{
+		if errors.Is(err,mongo.ErrNoDocuments){
+			return "","","","",errors.New("college not found")
+		}
+		return "","","","",errors.New("unable to retrive college login details")
+		
+	}
+	return college.CollegeId,college.CollegeName,college.CollegePassword,college.SuperAdminId,nil
+}
+
+func(repo *SuperAdminCollegeRepository)GetCollegeBalance(ctx context.Context,collegeId string)(string,error){
+	filter := bson.M{"college_id":collegeId}
+	var college super_admin.SuperAdminCollege
+	err:= repo.CollegeCollection.FindOne(ctx,filter).Decode(&college)
+	if err != nil{
+		if errors.Is(err,mongo.ErrNoDocuments){
+			return "0",errors.New("college not found")
+		}
+		return "0",errors.New("unable to fetch college balance")
+	}
+	return college.Balance,nil
+}
