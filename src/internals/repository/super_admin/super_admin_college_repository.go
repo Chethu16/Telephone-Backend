@@ -3,6 +3,7 @@ package superadmin_repo
 import (
 	"errors"
 
+
 	"github.com/Chethu16/Chethu/src/internals/domain/super_admin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -61,4 +62,52 @@ func(repo *SuperAdminCollegeRepository)GetCollegeBalance(ctx context.Context,col
 		return "0",errors.New("unable to fetch college balance")
 	}
 	return college.Balance,nil
+}
+func(repo *SuperAdminCollegeRepository)UpadateCollegeBalance(ctx context.Context,collegeId,newBalance string)error{
+	filter := bson.M{"college_id":collegeId}
+	update := bson.M{"$set":bson.M{"balance":newBalance}}
+	res,err := repo.CollegeCollection.UpdateOne(ctx,filter,update)
+	if err != nil{
+		return errors.New("failed to update college balance ")
+	}
+	if res.MatchedCount == 0{
+		return errors.New("college not found")
+	}
+	return nil
+}
+func(repo *SuperAdminCollegeRepository)GetCollegeById(ctx context.Context,collegeId string)(*super_admin.SuperAdminCollege,error){
+	filter := bson.M{"college_id":collegeId}
+	var college super_admin.SuperAdminCollege
+	err := repo.CollegeCollection.FindOne(ctx,filter).Decode(&college)
+	if err != nil{
+		if errors.Is(err,mongo.ErrNoDocuments){
+			return nil,errors.New("college not found")
+		}
+		return nil,errors.New("unable to retrive college details")
+		
+	}
+	return &college,nil
+}
+func(repo *SuperAdminCollegeRepository) GetCollegesBySuperAdminID(ctx context.Context, adminID string) ([]super_admin.SuperAdminCollege, error) {
+	filter := bson.M{"super_admin_id": adminID}
+	cursor, err := repo.CollegeCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, errors.New("failed to fetch colleges")
+	}
+	defer cursor.Close(ctx)
+
+	var colleges []super_admin.SuperAdminCollege
+	for cursor.Next(ctx) {
+		var college super_admin.SuperAdminCollege
+		if err := cursor.Decode(&college); err != nil {
+			return nil, errors.New("error reading college data")
+		}
+		colleges = append(colleges, college)
+	}
+
+	if len(colleges) == 0 {
+		return nil, errors.New("no colleges found for the given super admin")
+	}
+
+	return colleges, nil
 }

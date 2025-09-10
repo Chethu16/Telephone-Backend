@@ -1,6 +1,7 @@
 package superadmin_handler
 
 import (
+	
 	"log"
 	"net/http"
 	"strings"
@@ -70,4 +71,26 @@ func(h *SuperAdminCollegeHandler)CollegeLogin(c echo.Context)error{
 		Data: res,
 	})
 
+}
+func(h *SuperAdminCollegeHandler)GetCollegesBySuperAdminID(c echo.Context)error{
+	adminId := strings.TrimSpace(c.Param("super_admin_id"))
+	if adminId == ""{
+		return c.JSON(http.StatusBadRequest,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "super admin required to fetch colleges",
+		})
+	}
+	colleges,err := h.service.GetCollegesBySuperadminId(c.Request().Context(),adminId)
+	if err != nil{
+		log.Println("GetCollegesBySuperAdminID error:",err)
+		return c.JSON(http.StatusInternalServerError,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "unable to fetch colleges: "+err.Error(),
+		})	
+	}
+	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+		Status: "succes",
+		Message: "colleges fetched succesfully.",
+		Data: colleges,
+	})
 }

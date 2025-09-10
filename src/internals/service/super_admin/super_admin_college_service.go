@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
 
 	"strings"
 	"time"
@@ -110,4 +112,37 @@ func(sa *SuperAdminColllegeService)CollegeLogin(ctx context.Context,req super_ad
 	},nil
 
 
+}
+func(sa *SuperAdminColllegeService)UpdateCollegeBalance(ctx context.Context,collegeId,amount string)error{
+	amInt,err := strconv.Atoi(amount)
+	if err != nil ||amInt < 0{
+		return errors.New("recharge amount must be positive whole number")
+	}
+	curStr ,err := sa.Repo.GetCollegeBalance(ctx,collegeId)
+	if err !=nil{
+		return errors.New("unable to retrive current balance")
+	}
+	curInt,err := strconv.Atoi(curStr)
+	if err != nil{
+		return errors.New("account balance data invailde")
+	}
+	newBalance := curInt + amInt
+
+	if err := sa.Repo.UpadateCollegeBalance(ctx,collegeId,strconv.Itoa(newBalance));err != nil{
+		return errors.New("unable to update alance at this time")
+	}
+	if _,err := sa.Repo.GetCollegeById(ctx,collegeId);err != nil {
+		log.Printf("warning: could not fetch college for collegeid %s:%v",collegeId,err)
+	}
+	return nil
+}
+func(sa *SuperAdminColllegeService)GetCollegesBySuperadminId(ctx context.Context,adminId string)([]super_admin.SuperAdminCollege,error){
+	if adminId == ""{
+		return nil,errors.New("admin id required")
+	}
+	 colleges,err := sa.Repo.GetCollegesBySuperAdminID(ctx,adminId)
+	 if err != nil{
+		return nil,errors.New("unable to fetch colleges at this time")
+	 }
+	 return colleges,nil
 }
