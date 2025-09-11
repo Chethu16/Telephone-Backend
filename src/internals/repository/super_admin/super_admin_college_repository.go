@@ -111,3 +111,14 @@ func(repo *SuperAdminCollegeRepository) GetCollegesBySuperAdminID(ctx context.Co
 
 	return colleges, nil
 }
+func(repo *SuperAdminCollegeRepository)DeleteCollege(ctx context.Context,collegeId string)error{
+	filter := bson.M{"college_id":collegeId}
+	res,err:=repo.CollegeCollection.DeleteOne(ctx,filter)
+	if err !=nil{
+		return  errors.New("failed to delete college")
+	}
+	if res.DeletedCount == 0{
+		return errors.New("college not found")
+	}
+	return nil
+}

@@ -94,3 +94,25 @@ func(h *SuperAdminCollegeHandler)GetCollegesBySuperAdminID(c echo.Context)error{
 		Data: colleges,
 	})
 }
+func(h *SuperAdminCollegeHandler)GetCollegeDetails(c echo.Context)error{
+	collegeID := strings.TrimSpace(c.Param("college_id"))
+	if collegeID ==""{
+		return c.JSON(http.StatusBadRequest,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "college id required for feth details",
+		})
+	}
+	college,err := h.service.GetCollegeDetails(c.Request().Context(),collegeID)
+	if err != nil{
+		log.Println("Get college details error: ",err)
+		return c.JSON(http.StatusNotFound,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "College not found :"+err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+		Status: "succes",
+		Message: "college details recived succesfully",
+		Data: college,
+	})
+}

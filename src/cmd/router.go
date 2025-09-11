@@ -28,4 +28,5 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 	SuperAdminCollegeRoute.POST("/create/:super_admin_id", SuperAdminCollegeHandler.CreateCollege)
 	SuperAdminCollegeRoute.POST("/login", SuperAdminCollegeHandler.CollegeLogin)
 	SuperAdminCollegeRoute.GET("/getcolleges/:super_admin_id",SuperAdminCollegeHandler.GetCollegesBySuperAdminID)
+	SuperAdminCollegeRoute.GET("/getcollegedetails/:college_id",SuperAdminCollegeHandler.GetCollegeDetails)
 }

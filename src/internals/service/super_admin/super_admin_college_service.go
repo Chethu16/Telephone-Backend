@@ -146,3 +146,6 @@ func(sa *SuperAdminColllegeService)GetCollegesBySuperadminId(ctx context.Context
 	 }
 	 return colleges,nil
 }
+func (sa *SuperAdminColllegeService) GetCollegeDetails(ctx context.Context, collegeID string) (*super_admin.SuperAdminCollege, error) {
+	return sa.Repo.GetCollegeById(ctx, collegeID)
+}
