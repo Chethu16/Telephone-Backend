@@ -116,3 +116,23 @@ func(h *SuperAdminCollegeHandler)GetCollegeDetails(c echo.Context)error{
 		Data: college,
 	})
 }
+func(h *SuperAdminCollegeHandler)DeleteCollege(c echo.Context)error{
+	collegeID := strings.TrimSpace(c.Param("college_id"))
+	if collegeID==""{
+		return c.JSON(http.StatusBadRequest,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "college id required to delete",
+		})
+	}
+	if err := h.service.DeleteCollege(c.Request().Context(),collegeID);err !=nil{
+		log.Println("Delete college error :",err)
+		return c.JSON(http.StatusInternalServerError,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "unable to delete college :"+err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+		Status: "succes",
+		Message: "college deteled succesfully",
+	})
+}

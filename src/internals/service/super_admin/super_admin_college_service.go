@@ -73,79 +73,86 @@ func (sa *SuperAdminColllegeService) CreateCollege(ctx context.Context, req supe
 	}, nil
 
 }
-func(sa *SuperAdminColllegeService)CollegeLogin(ctx context.Context,req super_admin.CollegeLoginRequest)(*super_admin.CollegeTokenResponse,error){
-	if sa.Validate == nil{
-		return nil,errors.New("validator not initialized")
+func (sa *SuperAdminColllegeService) CollegeLogin(ctx context.Context, req super_admin.CollegeLoginRequest) (*super_admin.CollegeTokenResponse, error) {
+	if sa.Validate == nil {
+		return nil, errors.New("validator not initialized")
 	}
-	if err := sa.Validate.Struct(req);err !=nil{
-		return nil,fmt.Errorf("validation failed: %w",err)
+	if err := sa.Validate.Struct(req); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
 	collegeEmail := strings.ToLower(strings.TrimSpace(req.CollegeEmail))
 
-	exists,err := sa.Repo.CheckCollegeEmailExists(ctx,collegeEmail)
-	if err !=nil{
-		return nil,errors.New("failed to check email existence")
+	exists, err := sa.Repo.CheckCollegeEmailExists(ctx, collegeEmail)
+	if err != nil {
+		return nil, errors.New("failed to check email existence")
 	}
-	if !exists{
-		return nil,errors.New("invalid email or password")
+	if !exists {
+		return nil, errors.New("invalid email or password")
 	}
-	collegeID,name,hashPassword,superadminID,err := sa.Repo.GetCollegeForLogin(ctx,req.CollegeEmail)
-	if err != nil{
-		return nil,errors.New("college account not found")
+	collegeID, name, hashPassword, superadminID, err := sa.Repo.GetCollegeForLogin(ctx, req.CollegeEmail)
+	if err != nil {
+		return nil, errors.New("college account not found")
 
 	}
-	if err := utils.CheckPasswordHash(req.CollegePassword,hashPassword);err != nil{
-		return nil,errors.New("incorrect email or password")
+	if err := utils.CheckPasswordHash(req.CollegePassword, hashPassword); err != nil {
+		return nil, errors.New("incorrect email or password")
 	}
-	balance,err := sa.Repo.GetCollegeBalance(ctx,collegeID)
-	if err !=nil{
-		return nil,errors.New("unable to retrive account balance at the moment")
+	balance, err := sa.Repo.GetCollegeBalance(ctx, collegeID)
+	if err != nil {
+		return nil, errors.New("unable to retrive account balance at the moment")
 	}
-	token,err := utils.GenerateCollegeToken(req.CollegeEmail,name,collegeID,superadminID)
-	if err !=nil{
-		return nil,errors.New("failed to login, please try again")
+	token, err := utils.GenerateCollegeToken(req.CollegeEmail, name, collegeID, superadminID)
+	if err != nil {
+		return nil, errors.New("failed to login, please try again")
 	}
 	return &super_admin.CollegeTokenResponse{
-		Token: token,
+		Token:   token,
 		Balance: balance,
-	},nil
-
+	}, nil
 
 }
-func(sa *SuperAdminColllegeService)UpdateCollegeBalance(ctx context.Context,collegeId,amount string)error{
-	amInt,err := strconv.Atoi(amount)
-	if err != nil ||amInt < 0{
+func (sa *SuperAdminColllegeService) UpdateCollegeBalance(ctx context.Context, collegeId, amount string) error {
+	amInt, err := strconv.Atoi(amount)
+	if err != nil || amInt < 0 {
 		return errors.New("recharge amount must be positive whole number")
 	}
-	curStr ,err := sa.Repo.GetCollegeBalance(ctx,collegeId)
-	if err !=nil{
+	curStr, err := sa.Repo.GetCollegeBalance(ctx, collegeId)
+	if err != nil {
 		return errors.New("unable to retrive current balance")
 	}
-	curInt,err := strconv.Atoi(curStr)
-	if err != nil{
+	curInt, err := strconv.Atoi(curStr)
+	if err != nil {
 		return errors.New("account balance data invailde")
 	}
 	newBalance := curInt + amInt
 
-	if err := sa.Repo.UpadateCollegeBalance(ctx,collegeId,strconv.Itoa(newBalance));err != nil{
+	if err := sa.Repo.UpadateCollegeBalance(ctx, collegeId, strconv.Itoa(newBalance)); err != nil {
 		return errors.New("unable to update alance at this time")
 	}
-	if _,err := sa.Repo.GetCollegeById(ctx,collegeId);err != nil {
-		log.Printf("warning: could not fetch college for collegeid %s:%v",collegeId,err)
+	if _, err := sa.Repo.GetCollegeById(ctx, collegeId); err != nil {
+		log.Printf("warning: could not fetch college for collegeid %s:%v", collegeId, err)
 	}
 	return nil
 }
-func(sa *SuperAdminColllegeService)GetCollegesBySuperadminId(ctx context.Context,adminId string)([]super_admin.SuperAdminCollege,error){
-	if adminId == ""{
-		return nil,errors.New("admin id required")
+func (sa *SuperAdminColllegeService) GetCollegesBySuperadminId(ctx context.Context, adminId string) ([]super_admin.SuperAdminCollege, error) {
+	if adminId == "" {
+		return nil, errors.New("admin id required")
 	}
-	 colleges,err := sa.Repo.GetCollegesBySuperAdminID(ctx,adminId)
-	 if err != nil{
-		return nil,errors.New("unable to fetch colleges at this time")
-	 }
-	 return colleges,nil
+	colleges, err := sa.Repo.GetCollegesBySuperAdminID(ctx, adminId)
+	if err != nil {
+		return nil, errors.New("unable to fetch colleges at this time")
+	}
+	return colleges, nil
 }
 func (sa *SuperAdminColllegeService) GetCollegeDetails(ctx context.Context, collegeID string) (*super_admin.SuperAdminCollege, error) {
 	return sa.Repo.GetCollegeById(ctx, collegeID)
+}
+func (sa *SuperAdminColllegeService) DeleteCollege(ctx context.Context, collegeID string) error {
+
+	err := sa.Repo.DeleteCollege(ctx, collegeID)
+	if err != nil {
+		return errors.New("failed to delete college")
+	}
+	return nil
 }
