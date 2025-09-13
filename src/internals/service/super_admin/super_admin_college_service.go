@@ -16,21 +16,21 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type SuperAdminColllegeService struct {
+type SuperAdminCollegeService struct {
 	Repo     *superadmin_repo.SuperAdminCollegeRepository
 	Validate *validator.Validate
 }
 
-func NewSuperAdminCollegeService(r *superadmin_repo.SuperAdminCollegeRepository, v *validator.Validate) *SuperAdminColllegeService {
+func NewSuperAdminCollegeService(r *superadmin_repo.SuperAdminCollegeRepository, v *validator.Validate) *SuperAdminCollegeService {
 	if v == nil {
 		v = validator.New()
 	}
-	return &SuperAdminColllegeService{
+	return &SuperAdminCollegeService{
 		Repo:     r,
 		Validate: v,
 	}
 }
-func (sa *SuperAdminColllegeService) CreateCollege(ctx context.Context, req super_admin.CollegeCreateRequest, SuperadminId string) (*super_admin.CollegeResponse, error) {
+func (sa *SuperAdminCollegeService) CreateCollege(ctx context.Context, req super_admin.CollegeCreateRequest, SuperadminId string) (*super_admin.CollegeResponse, error) {
 	if sa.Validate == nil {
 		return nil, errors.New("validator not initialized")
 	}
@@ -73,7 +73,7 @@ func (sa *SuperAdminColllegeService) CreateCollege(ctx context.Context, req supe
 	}, nil
 
 }
-func (sa *SuperAdminColllegeService) CollegeLogin(ctx context.Context, req super_admin.CollegeLoginRequest) (*super_admin.CollegeTokenResponse, error) {
+func (sa *SuperAdminCollegeService) CollegeLogin(ctx context.Context, req super_admin.CollegeLoginRequest) (*super_admin.CollegeTokenResponse, error) {
 	if sa.Validate == nil {
 		return nil, errors.New("validator not initialized")
 	}
@@ -112,7 +112,7 @@ func (sa *SuperAdminColllegeService) CollegeLogin(ctx context.Context, req super
 	}, nil
 
 }
-func (sa *SuperAdminColllegeService) UpdateCollegeBalance(ctx context.Context, collegeId, amount string) error {
+func (sa *SuperAdminCollegeService) UpdateCollegeBalance(ctx context.Context, collegeId, amount string) error {
 	amInt, err := strconv.Atoi(amount)
 	if err != nil || amInt < 0 {
 		return errors.New("recharge amount must be positive whole number")
@@ -135,7 +135,7 @@ func (sa *SuperAdminColllegeService) UpdateCollegeBalance(ctx context.Context, c
 	}
 	return nil
 }
-func (sa *SuperAdminColllegeService) GetCollegesBySuperadminId(ctx context.Context, adminId string) ([]super_admin.SuperAdminCollege, error) {
+func (sa *SuperAdminCollegeService) GetCollegesBySuperadminId(ctx context.Context, adminId string) ([]super_admin.SuperAdminCollege, error) {
 	if adminId == "" {
 		return nil, errors.New("admin id required")
 	}
@@ -145,14 +145,49 @@ func (sa *SuperAdminColllegeService) GetCollegesBySuperadminId(ctx context.Conte
 	}
 	return colleges, nil
 }
-func (sa *SuperAdminColllegeService) GetCollegeDetails(ctx context.Context, collegeID string) (*super_admin.SuperAdminCollege, error) {
+func (sa *SuperAdminCollegeService) GetCollegeDetails(ctx context.Context, collegeID string) (*super_admin.SuperAdminCollege, error) {
 	return sa.Repo.GetCollegeById(ctx, collegeID)
 }
-func (sa *SuperAdminColllegeService) DeleteCollege(ctx context.Context, collegeID string) error {
+func (sa *SuperAdminCollegeService) DeleteCollege(ctx context.Context, collegeID string) error {
 
 	err := sa.Repo.DeleteCollege(ctx, collegeID)
 	if err != nil {
 		return errors.New("failed to delete college")
 	}
 	return nil
+}
+func(sa SuperAdminCollegeService)RechargeCollege(ctx context.Context,req super_admin.CollegeRechargeRequest)error{
+	if err := sa.Validate.Struct(req);err !=nil{
+		return errors.New("please provide all the recharge details correctly")
+	}
+	amntInt,err := strconv.Atoi(req.RechargeAmount)
+	if err != nil || amntInt <= 0{
+		return errors.New("recharge amount must be greater than zero")
+	}
+		curStr,err := sa.Repo.GetCollegeBalance(ctx,req.CollegeId)
+		if err != nil{
+			return errors.New("unable to retrive college balance")
+		}
+		curInt,err := strconv.Atoi(curStr)
+		if err !=  nil{
+			return errors.New("college balance data invalid")
+		}
+		newBalance := strconv.Itoa(curInt+amntInt)
+
+		recharge := super_admin.CollegeRecharge{
+			RechargeId: utils.GenerateUUID(),
+			CollegeId: req.CollegeId,
+			SuperAdminId: req.SuperAdminId,
+			RechargeAmount: req.RechargeAmount,
+			RechargedAt: time.Now().Format(time.RFC3339),
+		}
+		if err := sa.Repo.RechargeCollege(ctx, recharge); err != nil {
+		return errors.New("failed to process recharge")
+	}
+		if err :=sa.Repo.UpadateCollegeBalance(ctx,req.CollegeId,newBalance);err!=nil{
+			return errors.New("failed to update college balance ")
+		}
+		return nil
+		
+	
 }

@@ -12,10 +12,10 @@ import (
 )
 
 type SuperAdminCollegeHandler struct{
-	service *superadmin_service.SuperAdminColllegeService
+	service *superadmin_service.SuperAdminCollegeService
 }
 
-func NewSuperAdminCollegeHandler(service *superadmin_service.SuperAdminColllegeService)*SuperAdminCollegeHandler{
+func NewSuperAdminCollegeHandler(service *superadmin_service.SuperAdminCollegeService)*SuperAdminCollegeHandler{
 	return &SuperAdminCollegeHandler{service: service }
 }
 func(h *SuperAdminCollegeHandler)CreateCollege(c echo.Context)error{
@@ -136,3 +136,4 @@ func(h *SuperAdminCollegeHandler)DeleteCollege(c echo.Context)error{
 		Message: "college deteled succesfully",
 	})
 }
+func(h *SuperAdminCollegeHandler)RechargeCollge(c echo.Echo)

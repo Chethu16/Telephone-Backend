@@ -2,7 +2,8 @@ package superadmin_repo
 
 import (
 	"errors"
-
+	"strconv"
+	"strings"
 
 	"github.com/Chethu16/Chethu/src/internals/domain/super_admin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -121,4 +122,65 @@ func(repo *SuperAdminCollegeRepository)DeleteCollege(ctx context.Context,college
 		return errors.New("college not found")
 	}
 	return nil
+}
+func(repo *SuperAdminCollegeRepository)RechargeCollege(ctx context.Context,recharge super_admin.CollegeRecharge)error{
+	_,err:= repo.RechargeCollection.InsertOne(ctx,recharge)
+	if err != nil{
+		return errors.New("failed to record recharge transaction")
+	}
+	var college super_admin.SuperAdminCollege
+	filter := bson.M{"college_id":recharge.CollegeId}
+	err = repo.CollegeCollection.FindOne(ctx,filter).Decode(&college)
+	if err !=nil{
+		if errors.Is(err,mongo.ErrNoDocuments){
+		return errors.New("college not found")
+	}
+	return errors.New("unable to retrive college details for recharge")
+}
+	oldAmount,err := strconv.Atoi(college.Balance)
+	if err != nil{
+		return errors.New("invalid balance formate in database") 
+	}
+	if strings.Contains(recharge.RechargeAmount,"."){
+		return errors.New("recharge amount must be a whole number")
+	}
+	recharAmountInt,err := strconv.Atoi(recharge.RechargeAmount)
+	if err != nil{
+		return 	errors .New("invalid recharge amoount formate")
+	}
+	newBalanceInt := oldAmount+recharAmountInt
+	if newBalanceInt < 10 {
+		return errors.New("balance can not be less than 10")
+	}
+	newBalance := strconv.Itoa(newBalanceInt)
+	update := bson.M{"$set":bson.M{"balance":newBalance}}
+	_,err = repo.CollegeCollection.UpdateOne(ctx,filter,update)
+	if err != nil{
+		return errors.New("failed to update balance after recharge")
+	}
+	return nil
+}
+func(repo *SuperAdminCollegeRepository)GetRechargeHistoryByCollegeId(ctx context.Context,collegeId string)([]super_admin.CollegeRecharge,error){
+	filter := bson.M{"college_id":collegeId}
+
+	cursor,err := repo.RechargeCollection.Find(ctx,filter)
+	if err != nil{
+		return nil,errors.New("failed to retrive recharge cllection")
+	}
+	defer cursor.Close(ctx)
+
+	var recherges []super_admin.CollegeRecharge
+	for cursor.Next(ctx){
+		var recharge super_admin.CollegeRecharge
+		if err := cursor.Decode(&recharge); err!=nil{
+			return nil, errors.New("error reading recharge history of data")
+		}
+		recherges = append(recherges,recharge)
+	}
+	if len(recherges) ==0{
+		return nil,errors.New("no recharge history found for this college")
+	}
+	return recherges,nil
+		
+			
 }
