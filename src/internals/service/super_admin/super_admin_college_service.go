@@ -32,10 +32,11 @@ func NewSuperAdminCollegeService(r *superadmin_repo.SuperAdminCollegeRepository,
 }
 func (sa *SuperAdminCollegeService) CreateCollege(ctx context.Context, req super_admin.CollegeCreateRequest, SuperadminId string) (*super_admin.CollegeResponse, error) {
 	if sa.Validate == nil {
+		fmt.Println("")
 		return nil, errors.New("validator not initialized")
 	}
 	if err := sa.Validate.Struct(req); err != nil {
-		return nil, err // return actual validation errors
+		return nil, err
 	}
 	superadmincollegeEmail := strings.ToLower(strings.TrimSpace(req.CollegeEmail))
 	exists, err := sa.Repo.CheckCollegeEmailExists(ctx, superadmincollegeEmail)
@@ -156,38 +157,62 @@ func (sa *SuperAdminCollegeService) DeleteCollege(ctx context.Context, collegeID
 	}
 	return nil
 }
-func(sa SuperAdminCollegeService)RechargeCollege(ctx context.Context,req super_admin.CollegeRechargeRequest)error{
-	if err := sa.Validate.Struct(req);err !=nil{
-		return errors.New("please provide all the recharge details correctly")
+func (sa *SuperAdminCollegeService) RechargeCollege(ctx context.Context, req super_admin.CollegeRechargeRequest) error {
+	if err := sa.Validate.Struct(req); err != nil {
+		return errors.New("please provide all recharge details correctly")
 	}
-	amntInt,err := strconv.Atoi(req.RechargeAmount)
-	if err != nil || amntInt <= 0{
+
+	amtInt, err := strconv.Atoi(req.RechargeAmount)
+	if err != nil || amtInt <= 0 {
 		return errors.New("recharge amount must be greater than zero")
 	}
-		curStr,err := sa.Repo.GetCollegeBalance(ctx,req.CollegeId)
-		if err != nil{
-			return errors.New("unable to retrive college balance")
-		}
-		curInt,err := strconv.Atoi(curStr)
-		if err !=  nil{
-			return errors.New("college balance data invalid")
-		}
-		newBalance := strconv.Itoa(curInt+amntInt)
 
-		recharge := super_admin.CollegeRecharge{
-			RechargeId: utils.GenerateUUID(),
-			CollegeId: req.CollegeId,
-			SuperAdminId: req.SuperAdminId,
-			RechargeAmount: req.RechargeAmount,
-			RechargedAt: time.Now().Format(time.RFC3339),
-		}
-		if err := sa.Repo.RechargeCollege(ctx, recharge); err != nil {
+	// 🔹 1. Check super_admin balance
+	// superBalanceStr, err := sa.Repo.GetSuperAdminBalance(ctx, req.SuperAdminId)
+	// if err != nil {
+	// 	return errors.New("unable to retrieve super admin balance")
+	// }
+	// superBalance, err := strconv.Atoi(superBalanceStr)
+	// if err != nil {
+	// 	return errors.New("super admin balance data is invalid")
+	// }
+	// if superBalance < amtInt {
+	// 	return errors.New("insufficient super admin balance for recharge")
+	// }
+
+	// 🔹 2. Check current college balance
+	currStr, err := sa.Repo.GetCollegeBalance(ctx, req.CollegeId)
+	if err != nil {
+		return errors.New("unable to retrieve current college balance")
+	}
+	currInt, err := strconv.Atoi(currStr)
+	if err != nil {
+		return errors.New("college balance data is invalid")
+	}
+	newBalance := strconv.Itoa(currInt + amtInt)
+
+	// 🔹 3. Save recharge history
+	recharge := super_admin.CollegeRecharge{
+		RechargeId:     utils.GenerateUUID(),
+		CollegeId:      req.CollegeId,
+		SuperAdminId:   req.SuperAdminId,
+		RechargeAmount: req.RechargeAmount,
+		RechargedAt:    time.Now().Format(time.RFC3339),
+	}
+	if err := sa.Repo.RechargeCollege(ctx, recharge, req.SuperAdminId); err != nil {
 		return errors.New("failed to process recharge")
 	}
-		if err :=sa.Repo.UpadateCollegeBalance(ctx,req.CollegeId,newBalance);err!=nil{
-			return errors.New("failed to update college balance ")
-		}
-		return nil
-		
-	
+
+	// 🔹 4. Update college balance
+	if err := sa.Repo.UpadateCollegeBalance(ctx, req.CollegeId, newBalance); err != nil {
+		return errors.New("failed to update college balance")
+	}
+
+	// // 🔹 5. Deduct from super admin balance
+	// newSuperBalance := strconv.Itoa(superBalance - amtInt)
+	// if err := sa.Repo.UpdateSuperAdminBalance(ctx, req.SuperAdminId, newSuperBalance); err != nil {
+	// 	return errors.New("failed to update super admin balance")
+	// }
+
+	return nil
 }

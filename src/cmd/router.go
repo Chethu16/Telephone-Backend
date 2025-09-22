@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	
-
 	superadmin_handler "github.com/Chethu16/Chethu/src/internals/handler/superadmin"
 	superadmin_repo "github.com/Chethu16/Chethu/src/internals/repository/super_admin"
 	superadmin_service "github.com/Chethu16/Chethu/src/internals/service/super_admin"
@@ -19,6 +17,7 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 
 	SuperAdminRoute.POST("/create", SuperAdminHandler.CreateSuperAdmin)
 	SuperAdminRoute.POST("/login", SuperAdminHandler.SuperAdminLogin)
+	
 
 	SuperAdminCollegeRepo := superadmin_repo.NewSuperAdminCollegeRepository(db)
 	SuperAdminCollegeService := superadmin_service.NewSuperAdminCollegeService(SuperAdminCollegeRepo, validate)
@@ -27,7 +26,8 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 
 	SuperAdminCollegeRoute.POST("/create/:super_admin_id", SuperAdminCollegeHandler.CreateCollege)
 	SuperAdminCollegeRoute.POST("/login", SuperAdminCollegeHandler.CollegeLogin)
-	SuperAdminCollegeRoute.GET("/getcolleges/:super_admin_id",SuperAdminCollegeHandler.GetCollegesBySuperAdminID)
-	SuperAdminCollegeRoute.GET("/getcollegedetails/:college_id",SuperAdminCollegeHandler.GetCollegeDetails)
-	SuperAdminCollegeRoute.DELETE("/deletecollege/:college_id",SuperAdminCollegeHandler.DeleteCollege)
+	SuperAdminCollegeRoute.GET("/getcolleges/:super_admin_id", SuperAdminCollegeHandler.GetCollegesBySuperAdminID)
+	SuperAdminCollegeRoute.GET("/getcollegedetails/:college_id", SuperAdminCollegeHandler.GetCollegeDetails)
+	SuperAdminCollegeRoute.DELETE("/deletecollege/:college_id", SuperAdminCollegeHandler.DeleteCollege)
+	SuperAdminCollegeRoute.POST("/recharge/:super_admin_id/:college_id", SuperAdminCollegeHandler.RechargeCollge)
 }
