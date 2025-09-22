@@ -216,3 +216,14 @@ func (sa *SuperAdminCollegeService) RechargeCollege(ctx context.Context, req sup
 
 	return nil
 }
+func (sa *SuperAdminCollegeService)GetRechargeHistory(ctx context.Context,collegeId string)([]super_admin.CollegeRecharge,error){
+	if collegeId == ""{
+		return nil,errors.New("college Id is required")
+	}
+	recharges,err := sa.Repo.GetRechargeHistoryByCollegeId(ctx,collegeId)
+	if err !=nil{
+		return nil,errors.New("unable to retrive recharge history")
+	}	
+	return recharges,nil
+
+}

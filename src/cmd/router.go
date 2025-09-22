@@ -30,4 +30,5 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 	SuperAdminCollegeRoute.GET("/getcollegedetails/:college_id", SuperAdminCollegeHandler.GetCollegeDetails)
 	SuperAdminCollegeRoute.DELETE("/deletecollege/:college_id", SuperAdminCollegeHandler.DeleteCollege)
 	SuperAdminCollegeRoute.POST("/recharge/:super_admin_id/:college_id", SuperAdminCollegeHandler.RechargeCollge)
+	SuperAdminCollegeRoute.GET("/recharge/history/:college_id",SuperAdminCollegeHandler.GetRechargeHistory)
 }

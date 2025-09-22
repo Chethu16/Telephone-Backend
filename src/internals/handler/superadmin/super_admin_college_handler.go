@@ -1,6 +1,7 @@
 package superadmin_handler
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -178,4 +179,26 @@ func (h *SuperAdminCollegeHandler) RechargeCollge(c echo.Context) error {
 		Message: "college account recharged succesfuly",
 	})
 
+}
+func(h *SuperAdminCollegeHandler)GetRechargeHistory(c echo.Context)error{
+	collegeId := strings.TrimSpace(c.Param("college_id"))
+	if collegeId == ""{
+		return c.JSON(http.StatusBadRequest,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "college Id required for fetch recharge history .",
+		})
+	}
+	ctx := context.Background()
+	history,err := h.service.GetRechargeHistory(ctx,collegeId)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError,super_admin.ErrorResponse{
+			Status: "error",
+			Error: "unable to fetch recharge history : "+err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK,super_admin.SuccesResponse{
+		Status: "success",
+		Message: "Recharge history retrieved succesfully .",
+		Data: history,
+	})
 }
