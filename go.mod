@@ -26,6 +26,7 @@ require (
 
 require (
 	github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
+	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang/snappy v0.0.4 // indirect

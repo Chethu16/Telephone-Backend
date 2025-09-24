@@ -31,4 +31,12 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 	SuperAdminCollegeRoute.DELETE("/deletecollege/:college_id", SuperAdminCollegeHandler.DeleteCollege)
 	SuperAdminCollegeRoute.POST("/recharge/:super_admin_id/:college_id", SuperAdminCollegeHandler.RechargeCollge)
 	SuperAdminCollegeRoute.GET("/recharge/history/:college_id",SuperAdminCollegeHandler.GetRechargeHistory)
+
+	SuperAdminMachineRepo := superadmin_repo.NewSuperAdminMachineRepository(db)
+	SuperAdminMachineService := superadmin_service.NewSuperAdminMAchineService(*SuperAdminMachineRepo,validate)
+	SuperAdminMachineHandler:=superadmin_handler.NewSuperAdminMachineHandler(SuperAdminMachineService)
+	SuperAdminMachineRoute := e.Group("/superadmin/machine")
+
+	SuperAdminMachineRoute.POST("/create",SuperAdminMachineHandler.CreateMachine)
+
 }
