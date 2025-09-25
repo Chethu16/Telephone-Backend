@@ -38,5 +38,8 @@ func SetupRoutes(e *echo.Echo, db *mongo.Database, validate *validator.Validate)
 	SuperAdminMachineRoute := e.Group("/superadmin/machine")
 
 	SuperAdminMachineRoute.POST("/create",SuperAdminMachineHandler.CreateMachine)
+	SuperAdminMachineRoute.GET("/all/:college_id",SuperAdminMachineHandler.GetAllMachine)
+	SuperAdminMachineRoute.DELETE("/delete/:machine_id",SuperAdminMachineHandler.DeleteMachine)
+
 
 }

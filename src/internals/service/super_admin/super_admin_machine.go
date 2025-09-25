@@ -47,3 +47,26 @@ func (sa *SuperAdminMachineService) CreateMachine(ctx context.Context, req super
 
 	return machineId, nil
 }
+func(sa *SuperAdminMachineService)GetAllMachinesByCollege(ctx context.Context,collegeId string)([]super_admin.Machine,string,error){
+	if collegeId == ""{
+			return nil,"",errors.New("collegeID must be provided")
+	}
+	balance ,err := sa.repo.GetCollageBalance(ctx,collegeId)
+	if err != nil{
+		return nil,"",fmt.Errorf("unable to retrive balance for collegeId %s: %w",collegeId,err)
+	}
+	machines,err := sa.repo.GetAllMachinesByCollege(ctx,collegeId)
+	if err != nil{
+		return nil,"",fmt.Errorf("unable to retrive machine list for collegeID %s:%w",collegeId,err)
+	}
+	return machines,balance,nil
+}
+func(sa *SuperAdminMachineService)DeleteMachine(ctx context.Context, machineId string)error{
+	if machineId == ""{
+		return  errors.New("machineID must be provided")
+	}
+	if err := sa.repo.DeleteMachine(ctx,machineId);err !=nil{
+		return fmt.Errorf("failed to delete machine with ID %s:%w",machineId,err)
+	}
+	return nil
+} 
