@@ -21,7 +21,7 @@ var mongoClient *mongo.Client
 
 func init() {
 	// ✅ MongoDB Atlas URI
-	mongoURI := "mongodb+srv://developersrujan12:Sruj2003@cluster0.dsu2sbk.mongodb.net/?retryWrites=true&w=majority"
+	mongoURI := 
 
 	log.Println("🔧 Connecting to MongoDB...")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)

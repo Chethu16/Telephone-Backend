@@ -10,4 +10,3 @@ func NewMachineRechargeService(r *admin_repo.MachineRechargeRepo)*MachineRecharg
 		Repo: r,
 	}
 }
-func (sa *MachineRechargeService)
